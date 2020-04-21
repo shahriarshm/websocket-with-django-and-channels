@@ -1,0 +1,43 @@
+<!-- chat/templates/chat/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Echo Text</title>
+</head>
+<body>
+    <textarea id="echo-log" cols="100" rows="20"></textarea><br/>
+    <input id="text-input" type="text" size="100"/><br/>
+    <input id="text-submit" type="button" value="Enter"/>
+
+    <script>
+        var socket = new WebSocket(
+            'ws://' + window.location.host +
+            '/ws/?name=test&version=');
+
+        socket.onmessage = function(e) {
+            var message = e.data;
+            document.querySelector('#echo-log').value += (message + '\n');
+        };
+
+        socket.onclose = function(e) {
+            console.error('Socket closed unexpectedly');
+        };
+
+        document.querySelector('#text-input').focus();
+        document.querySelector('#text-input').onkeyup = function(e) {
+            if (e.keyCode === 13) {  // enter, return
+                document.querySelector('#text-submit').click();
+            }
+        };
+
+        document.querySelector('#text-submit').onclick = function(e) {
+            var messageInputDom = document.querySelector('#text-input');
+            var message = messageInputDom.value;
+            socket.send(message);
+
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
