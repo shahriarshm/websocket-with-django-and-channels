@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Echo Bytes</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container">
+            <h1 class="display-4">Echo Bytes</h1>
+            <p class="lead">This is an example for sending canvas data to server and receving data from server.</p>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Sender Canvas</h5>
+                        <canvas id="myCanvas1" width="300" height="300">
+                        Your browser does not support the HTML5 canvas tag.
+                        </canvas>
+                        <br>
+                        <button type="button" class="btn btn-primary" onclick="btnSend()">Send</button>
+                        <button type="button" class="btn btn-success" onclick="btnChangeColor()">Change Color</button>
+                    </div>
+                </div> 
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Receiver Canvas</h5>
+                       
+                        <canvas id="myCanvas2" width="300" height="300">
+                        Your browser does not support the HTML5 canvas tag.
+                        </canvas>
+                    </div>
+                </div> 
+            </div>
+        </div>
+    </div>
+    
+    <script>
+
+        var socket = new WebSocket(
+            'ws://' + window.location.host +
+            '/ws/');
+        socket.binaryType = "arraybuffer";
+        
+        socket.onmessage = function(e) {
+            var message = e.data;
+            var arr = new Uint8Array(message);
+            var canvas = document.getElementById("myCanvas2");
+            var ctx = canvas.getContext("2d");
+            var imgData = ctx.createImageData(canvas.width, canvas.height);
+            for (let index = 0; index < arr.length; index++) {
+                imgData.data[index] = arr[index];
+            }
+            ctx.putImageData(imgData, 0, 0); 
+        };
+
+        socket.onclose = function(e) {
+            console.error('Socket closed unexpectedly');
+        };
+
+        window.onload = function(){
+            btnChangeColor()
+        }
+
+        function btnChangeColor(){
+            var canvas = document.getElementById("myCanvas1");
+            var ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Create gradient
+            var grd = ctx.createLinearGradient(0, 0, 400, 0);
+
+            var back = ["red","blue","gray","yellow","pink"];
+            var rand = back[Math.floor(Math.random() * back.length)];
+            grd.addColorStop(0, rand);
+            grd.addColorStop(1, "white");
+
+            // Fill with gradient
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, 300, 300); 
+        }
+
+        function btnSend() {
+            var canvas = document.getElementById("myCanvas1");
+            var ctx = canvas.getContext("2d");
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            var arr = new Uint8Array(imgData.data);
+            socket.send(arr);    
+        };     
+    </script>
+  </body>
+</html>
