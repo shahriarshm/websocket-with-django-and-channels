@@ -1,0 +1,143 @@
+{% extends 'chat/base.html' %}
+{% block content %}
+<div class="row">
+    <div class="mb-sm-3 col-md-7">
+        <div class="card">
+            <div class="card-header">
+                Messages
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">Messages of <strong>{{ chatObject.title }}</strong></h5>
+                <div id="messages-list" class="border px-2 py-2 mb-2" style="height: 200px; overflow-y: scroll">
+                    {% for message in chatObject.message_set.all %}
+                    <div class="media">
+                        <div class="media-body">
+                            {% if message.author_id == user.id %}
+                            <h6 class="my-0 text-success"><strong>You</strong></h6>
+                            {% else %}
+                            <h6 class="my-0"><strong>{{ message.author }}</strong></h6>
+                            {% endif %}
+                            <p>{{ message.text }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="form-inline">
+                    <div class="form-group mr-2 mb-2">
+                    <input type="text" class="form-control" id="msg-input" placeholder="Enter your Message Text">
+                    </div>
+                    <button id="msg-submit" type="submit" class="btn btn-primary mb-2">Send</button>   
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header">
+                Members
+            </div>
+            <div class="card-body">
+                <div id="members-list" class="list-group">
+                    <p class="card-text">Shere this chat link with your friends: <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'chat:chat' chatObject.unique_code %}">{{ request.scheme }}://{{ request.get_host }}{% url 'chat:chat' chatObject.unique_code %}</a></p>
+                    {% for member in chatObject.member_set.all %}
+                    <li id="item-{{ member }}" href="#" class="list-group-item">{{ member }}</li>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'chat:leave_chat' chatObject.unique_code %}" class="btn btn-danger mt-3">Leave Conversation</a>
+                {% if chatObject.creator_id == user.id %}
+                <p class="text-muted mt-2">If you leave this chat it will be deleted.</p>  
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+{% block scripts %}
+<script>
+    var chat_id = {{ chat_id_json }};
+    var msgdiv = $('#messages-list');
+    var memberdiv = $('#members-list');
+
+    window.onload = function(e){
+        msgdiv.scrollTop(msgdiv.prop("scrollHeight"));
+    }
+
+    var socket = new WebSocket(
+    'ws://' + window.location.host +
+    '/ws/chat/' + chat_id + '/');
+
+    socket.onmessage = function(e) {
+        var message = JSON.parse(e.data);
+        switch (message['type']) {
+            case "join":
+                memberdiv.append(`
+                    <li id="item-USERNAME" href="#" class="list-group-item">USERNAME</li>
+                `.replace('USERNAME', message['username']).replace('USERNAME', message['username']));
+
+                msgdiv.append(`
+                    <div class="mx-auto" style="width: max-content;">
+                        USERNAME joined the chat
+                    </div>
+                `.replace('USERNAME', message['username']));
+                break;
+            case "leave":
+                $('#item-'+ message['username']).remove();
+
+                msgdiv.append(`
+                    <div class="mx-auto" style="width: max-content;">
+                        USERNAME left the chat
+                    </div>
+                `.replace('USERNAME', message['username']));
+                break;
+            case "delete":
+                alert('Chat was deleted by its creator.');
+                window.location.href = window.location.origin + '/chat/';
+                break;
+            case "msg":
+                msgdiv.append(`
+                    <div class="media">
+                        <div class="media-body">
+                            <h6 class="my-0"><strong>USERNAME</strong></h6>
+                            <p>MESSAGE</p>
+                        </div>
+                    </div>
+                `.replace('USERNAME', message['sender']).replace('MESSAGE', message['text']));
+                break;
+            default:
+                break;
+        }
+        msgdiv.scrollTop(msgdiv.prop("scrollHeight"));
+    };
+
+    socket.onclose = function(e) {
+        console.error('Socket closed unexpectedly');
+    };
+
+    document.querySelector('#msg-input').focus();
+    document.querySelector('#msg-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+            document.querySelector('#msg-submit').click();
+        }
+    };
+
+    document.querySelector('#msg-submit').onclick = function(e) {
+        var messageInputDom = document.querySelector('#msg-input');
+        var message = messageInputDom.value;
+
+        msgdiv.append(`
+            <div class="media">
+                <div class="media-body">
+                    <h6 class="my-0 text-success"><strong>You</strong></h6>
+                    <p>MESSAGE</p>
+                </div>
+            </div>
+        `.replace('MESSAGE', message));
+
+        msgdiv.scrollTop(msgdiv.prop("scrollHeight"));
+
+        socket.send(JSON.stringify({'text': message}));
+
+        messageInputDom.value = '';
+    };
+</script>
+{% endblock scripts %}

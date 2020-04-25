@@ -1,0 +1,39 @@
+{% extends "chat/base.html" %}
+{% block content %}
+    <div class="row">
+        <div class="mb-sm-3 col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Create Multiple Chats
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Create Chat</h5>
+                    <p class="card-text">You can create your own group chat here.</p>
+                    <form action="{% url 'chat:create_chat' %}" method="POST" class="form-inline">
+                        {% csrf_token %}
+                        <div class="form-group mr-2 mb-2">
+                            <label for="id_group_name" class="sr-only">Group Name</label>
+                            <input type="text" class="form-control" name="group_name" id="id_group_name" placeholder="Group Name">
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Create</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    My Chats
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <p class="card-text">You can see a list of chats you've joined/created.</p>
+                        {% for member in members %}
+                        <a href="{% url 'chat:chat' member.chat.unique_code %}" class="list-group-item list-group-item-action">{{ member.chat.title }}</a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
