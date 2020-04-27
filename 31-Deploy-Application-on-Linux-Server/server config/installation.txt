@@ -1,0 +1,66 @@
+## Creating User ##
+1. sudo adduser username
+2. sudo adduser username sudo
+
+## Installing the Packages from the Ubuntu Repositories ##
+
+1. sudo apt update
+2. sudo apt install ufw python3-pip python3-dev libpq-dev nginx curl
+
+## Set up Firewall with ufw ##
+
+1. sudo ufw default allow outgoing
+2. sudo ufw default deny incoming
+3. sudo ufw allow 8000
+4. sudo ufw allow ssh
+5. sudo ufw enable
+
+## Creating a Python Virtual Environment for your Project ##
+
+1. sudo pip3 install virtualenv
+2. virtualenv myprojectenv
+3. source myprojectenv/bin/activate
+
+## Installing Packages using Requirements File ##
+
+1. pip install -r requirements.txt
+
+## Set Permissions ##
+
+1. sudo chown www-data: myproject/db.sqlite3
+2. sudo chmod 666 myproject/db.sqlite3
+3. sudo cmod myproject
+
+## Creating systemd Socket and Service Files for Gunicorn ##
+
+1. pip install gunicorn
+2. sudo nano /etc/systemd/system/gunicorn.socket
+3. sudo nano /etc/systemd/system/gunicorn.service
+4. sudo systemctl start gunicorn.socket
+5. sudo systemctl enable gunicorn.socket
+6. sudo systemctl status gunicorn.socket
+7. sudo systemctl status gunicorn
+8. curl --unix-socket /run/gunicorn.sock localhost
+9. sudo systemctl status gunicorn
+10. sudo systemctl daemon-reload
+11. sudo systemctl restart gunicorn
+
+## Installing Redis ##
+
+1. sudo apt-get install redis-server
+2. sudo systemctl restart redis-server
+3. sudo nano /etc/redis/redis.conf
+4. sudo ufw allow 6379
+
+## Creating Daphne Service ##
+
+1. sudo nano /etc/systemd/system/daphnews.service
+2. sudo systemctl start daphnews
+3. sudo ufw allow 9000
+
+## Configure Nginx to Proxy Pass to Gunicorn ##
+
+1. sudo nano /etc/nginx/sites-available/myproject
+2. sudo ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+3. sudo nginx -t
+4. sudo systemctl restart nginx

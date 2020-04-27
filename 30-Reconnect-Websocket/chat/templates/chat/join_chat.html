@@ -1,0 +1,17 @@
+{% extends 'chat/base.html' %}
+{% block content %}
+    <div class="card">
+        <div class="card-header">
+            Join to chat
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Join to <strong>{{ chatObject.title }}</strong></h5>
+            <p class="card-text">Would you like to join this chat?</p>
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success mb-2">Join</button> 
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

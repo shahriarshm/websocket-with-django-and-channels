@@ -1,0 +1,41 @@
+{% extends 'chat/base.html' %}
+{% block content %}
+<div class="card mb-5">
+    <div class="card-header">
+        Login
+    </div>
+    <div class="card-body">
+        <form action="." method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input type="text" class="form-control" name="username" required id="id_username" aria-describedby="usernameHelp" placeholder="Enter Username">
+                <small id="usernameHelp" class="form-text text-muted">Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.</small>
+            </div>
+            <div class="form-group">
+                <label for="id_email">Email address</label>
+                <input type="email" class="form-control" name="email" required id="id_email" placeholder="Enter Email">
+            </div>
+            <div class="form-group">
+                <label for="id_password1">Password</label>
+                <input type="password" class="form-control" name="password1" required id="id_password1" aria-describedby="passwordHelp" placeholder="Password">
+                <small id="passwordHelp" class="form-text text-muted">Your password can't be too similar to your other personal information.</small>
+                <small id="passwordHelp" class="form-text text-muted">Your password must contain at least 8 characters.</small>
+                <small id="passwordHelp" class="form-text text-muted">Your password can't be a commonly used password.</small>
+                <small id="passwordHelp" class="form-text text-muted">Your password can't be entirely numeric.</small>
+            </div>
+            <div class="form-group">
+                <label for="id_password2">Password Confirmation</label>
+                <input type="password" class="form-control" name="password2" required id="id_password2" placeholder="Confirm Password">
+            </div> 
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div class="border-top pt-2 mt-3">
+            <small class="text-muted">
+                Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
+            </small>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

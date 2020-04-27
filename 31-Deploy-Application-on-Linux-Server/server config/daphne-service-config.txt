@@ -1,0 +1,13 @@
+
+[Unit]
+Description=daphne daemon
+After=network.target
+
+[Service]
+User={USER}
+Group=www-data
+WorkingDirectory={PROJECT-DIRECTORY}
+ExecStart={VIRTUAL-ENVIRONMENT-ADDRESS}/bin/daphne --bind 0.0.0.0 --port 9000 --verbosity 0 {PROJECT-NAME}.asgi:application
+
+[Install]
+WantedBy=multi-user.target

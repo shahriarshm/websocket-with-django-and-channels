@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Title</title>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">Joining to a Room</h1>
+        <p class="lead">This is an example for joining to a room for sending and receiving messages.</p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Send Message</h5>
+              <p>You loged in as: <strong id="user_id"></strong></p>
+              <div class="input-group flex-nowrap mb-2">
+                <div class="input-group-prepend">
+                  <span class="input-group-text" id="addon-wrapping">@</span>
+                </div>
+                <input id="username-input" type="text" class="form-control" placeholder="Receiver ID" aria-label="Receiver ID" aria-describedby="addon-wrapping">
+              </div>
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">Message</span>
+                </div>
+                <input id="msg-input" type="text" class="form-control" placeholder="Message Text" aria-label="Message Text" aria-describedby="addon-wrapping">
+              </div>
+              <button id="msg-submit" type="button" class="btn btn-primary" onclick="btnSend()">Send</button>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">My Messages</h5>
+              <div id="messages-list" style="height: 20rem; overflow-y: scroll;"></div>    
+            </div>
+          </div> 
+        </div>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <!-- Optional JavaScript -->
+    <script>
+      var my_username = {{ username_json }};
+      document.querySelector('#user_id').innerHTML = my_username;
+
+      var socket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/chat2/' + my_username + '/');
+
+      socket.onmessage = function(e) {
+        var message = JSON.parse(e.data);
+        $('#messages-list').prepend(`
+          <div class="media mb-2">
+            <div class="media-body">
+              <h6 class="mt-0"><strong>USERNAME</strong></h6>
+              MESSAGE
+            </div>
+          </div>
+        `.replace('USERNAME', message['sender']).replace('MESSAGE', message['text']));
+      };
+
+      socket.onclose = function(e) {
+        console.error('Socket closed unexpectedly');
+      };
+
+      document.querySelector('#msg-input').focus();
+      document.querySelector('#msg-input').onkeyup = function(e) {
+        if (e.keyCode === 13) {  // enter, return
+          document.querySelector('#msg-submit').click();
+        }
+      };
+
+      document.querySelector('#msg-submit').onclick = function(e) {
+        var username = document.querySelector('#username-input').value;
+
+        var messageInputDom = document.querySelector('#msg-input');
+        var message = messageInputDom.value;
+
+        $('#messages-list').prepend(`
+          <div class="media mb-2">
+            <div class="media-body">
+              <h6 class="mt-0"><strong>You</strong></h6>
+              MESSAGE
+            </div>
+          </div>
+        `.replace('MESSAGE', message));
+
+        socket.send(JSON.stringify({'sender': my_username, 'receiver': username, 'text': message}));
+
+        messageInputDom.value = '';
+      };
+    </script>
+  </body>
+</html>
