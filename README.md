@@ -10,3 +10,4 @@ Actually we've done some mini and large projects that you can see in following l
 1. [Group Chat](/18-23-Multiple-Chat-Project)
 2. [Voice/Video Call Application](/26-29-VideoCall-Projec)
 
+You can watch tutorials on Youtube from [here](https://www.youtube.com/playlist?list=PLRU2zoAmuzJ2GD68st5SinXXv_Gv1lWRm).
