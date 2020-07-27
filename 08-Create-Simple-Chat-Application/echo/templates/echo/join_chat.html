@@ -60,7 +60,7 @@
 
       var socket = new WebSocket(
         'ws://' + window.location.host +
-        '/ws/chat2/' + my_username + '/');
+        '/ws/chat/' + my_username + '/');
 
       socket.onmessage = function(e) {
         var message = JSON.parse(e.data);
