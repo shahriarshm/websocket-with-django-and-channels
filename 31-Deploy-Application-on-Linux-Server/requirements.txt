@@ -30,7 +30,7 @@ service-identity==21.1.0
 six==1.15.0
 sqlparse==0.4.1
 toml==0.10.2
-Twisted==21.7.0
+Twisted==22.1.0
 txaio==21.2.1
 typing-extensions==3.10.0.0
 wrapt==1.12.1
