@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -70,10 +71,9 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'websock.wsgi.application'
+WSGI_APPLICATION = 'websock.wsgi.application'
+ASGI_APPLICATION = 'websock.asgi.application'
 
-# Channels
-ASGI_APPLICATION = 'websock.routing.application'
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
@@ -92,6 +92,8 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 
 # Password validation

@@ -31,13 +31,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
     'echo',
 ]
 
@@ -69,16 +69,15 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'websock.wsgi.application'
+WSGI_APPLICATION = 'websock.wsgi.application'
+ASGI_APPLICATION = 'websock.asgi.application'
 
-# Channels
-ASGI_APPLICATION = 'websock.routing.application'
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('localhost', 6379)],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+        # 'CONFIG': {
+        #     "hosts": [('localhost', 6379)],
+        # },
     },
 }
 

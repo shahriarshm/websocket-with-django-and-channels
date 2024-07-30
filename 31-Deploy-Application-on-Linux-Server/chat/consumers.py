@@ -1,10 +1,9 @@
-from channels.consumer import SyncConsumer, AsyncConsumer
+from channels.consumer import AsyncConsumer
 from channels.exceptions import StopConsumer
-from asgiref.sync import async_to_sync
 import json
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import User
-from django.db.models import Q
+from django.db.models import Q, aprefetch_related_objects
 from chat.models import GroupChat, Message, VideoThread
 import asyncio
 from datetime import datetime
@@ -164,7 +163,6 @@ class VideoChatConsumer(AsyncConsumer):
                 video_thread_id = text_data_json['video_thread_id']
                 videothread = await self.get_videothread(video_thread_id)
                 self.scope['session']['video_thread_id'] = None
-                self.scope['session'].save()
                 
                 if videothread.status != VC_ACCEPTED or videothread.status != VC_REJECTED:
                     await self.change_videothread_status(video_thread_id, VC_NOT_AVAILABLE)
@@ -197,7 +195,6 @@ class VideoChatConsumer(AsyncConsumer):
                 video_thread_id = text_data_json['video_thread_id']
                 videothread = await self.change_videothread_status(video_thread_id, VC_REJECTED)
                 self.scope['session']['video_thread_id'] = None
-                self.scope['session'].save()
 
                 await self.channel_layer.group_send(
                     f"videochat_{videothread.caller.id}",
@@ -212,7 +209,6 @@ class VideoChatConsumer(AsyncConsumer):
                 videothread = await self.change_videothread_status(video_thread_id, VC_ENDED)
                 await self.change_videothread_datetime(video_thread_id, False)
                 self.scope['session']['video_thread_id'] = None
-                self.scope['session'].save()
 
                 await self.channel_layer.group_send(
                     f"videochat_{videothread.caller.id}",
@@ -262,56 +258,49 @@ class VideoChatConsumer(AsyncConsumer):
             'text': message
         })
 
-    @database_sync_to_async
-    def get_videothread(self, id):
+    async def get_videothread(self, id):
         try:
-            videothread = VideoThread.objects.get(id=id)
+            videothread = await VideoThread.objects.aget(id=id)
+            await aprefetch_related_objects([videothread], "caller", "callee")
             return videothread
         except VideoThread.DoesNotExist:
             return None
 
-    @database_sync_to_async
-    def create_videothread(self, callee_username):
+    async def create_videothread(self, callee_username):
         try:
-            callee = User.objects.get(username=callee_username)
+            callee = await User.objects.aget(username=callee_username)
         except User.DoesNotExist:
             return 404, None
 
-        if VideoThread.objects.filter(Q(caller_id=callee.id) | Q(callee_id=callee.id), status=VC_PROCESSING).count() > 0:
+        if await (
+            VideoThread.objects.filter(Q(caller_id=callee.id) | Q(callee_id=callee.id), status=VC_PROCESSING).acount()
+        ) > 0:
             return VC_BUSY, None
         
-        videothread = VideoThread.objects.create(caller_id=self.user.id, callee_id=callee.id)
+        videothread = await VideoThread.objects.acreate(caller_id=self.user.id, callee_id=callee.id)
         self.scope['session']['video_thread_id'] = videothread.id
-        self.scope['session'].save()
 
         return VC_CONTACTING, videothread.id
 
-    @database_sync_to_async
-    def change_videothread_status(self, id, status):
+    async def change_videothread_status(self, id, status):
         try:
-            videothread = VideoThread.objects.get(id=id)
+            videothread = await VideoThread.objects.aget(id=id)
             videothread.status = status
-            videothread.save()
+            await videothread.asave()
+            await aprefetch_related_objects([videothread], "caller", "callee")
             return videothread
         except VideoThread.DoesNotExist:
             return None
 
-    @database_sync_to_async
-    def change_videothread_datetime(self, id, is_start):
+    async def change_videothread_datetime(self, id, is_start):
         try:
-            videothread = VideoThread.objects.get(id=id)
+            videothread = await VideoThread.objects.aget(id=id)
             if is_start: 
                 videothread.date_started = datetime.now()
             else: 
                 videothread.date_ended = datetime.now()
-            videothread.save()
+            await videothread.asave()
+            await aprefetch_related_objects([videothread], "caller", "callee")
             return videothread
         except VideoThread.DoesNotExist:
             return None
-
-
-        
-        
-        
-        
-        
